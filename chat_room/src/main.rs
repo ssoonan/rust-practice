@@ -19,8 +19,8 @@ fn run_server(address: &str) -> std::io::Result<()> {
         // 클라이언트 목록에 등록
         let clients_clone = Arc::clone(&clients);
         {
-            let mut lock = clients_clone.lock().unwrap();
-            lock.push(stream.try_clone()?);
+            let mut lock = clients_clone.lock().unwrap(); // 왜 여기서 lock을 걸지? push, write를 하니까 lock을 거는 건가
+            lock.push(stream.try_clone()?); // lock을 잡은 이후 새로운 steram을 추가하여 Vec<TcpStream>에 추가함
         }
 
         // 각 클라이언트마다 스레드를 생성해 메시지 수신 및 브로드캐스트
@@ -35,7 +35,7 @@ fn run_server(address: &str) -> std::io::Result<()> {
 
 /// 클라이언트에서 오는 메시지를 받으면 모든 클라이언트에게 브로드캐스트하는 함수
 fn handle_client(
-    mut stream: TcpStream,
+    stream: TcpStream,
     clients: Arc<Mutex<Vec<TcpStream>>>,
     peer_addr: std::net::SocketAddr,
 ) {
@@ -48,7 +48,7 @@ fn handle_client(
                 eprintln!("Error reading from client: {}", peer_addr);
                 break;
             }
-        };
+        }; // match를 거쳐 line이 처리됨, 이걸 쓰면 됨
 
         let message = format!("{}: {}", peer_addr, line);
 

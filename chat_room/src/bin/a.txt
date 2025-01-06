@@ -1,0 +1,25 @@
+Architecture Dependent Code
+Most parts of a real-time kernel run on any CPU, e.g., scheduling the next thread. Thread switching and memory protection, on the other hand, are different for every CPU architecture. CPUs differ in the number of core registers, exception context, memory protection hardware and instruction set.
+
+In order for the kernel to be portable, all architecture-dependent code is put into one crate (module). Because the kernel only uses the CPU and no microcontroller peripherals, this is only a small part of the kernel.
+
+There is a large variety of microcontroller specialized in different use cases, but most of them use the same CPU architecture (e.g. Arm Cortex-M0+/3/4/7, RISC-V). Thus, once the kernel runs on one CPU, it is compatible with loads of microcontrollers.
+
+Hardware Abstraction Layer
+Device drivers and business logic can access the microcontroller peripherals via memory-mapped register. The issue here is that the registers are different for every microcontroller. A hardware abstraction layer (HAL) generalizes peripheral access with a common set of functions for a entire line of microcontrollers.
+
+The Rust community is taking the HAL approach one step further with traits (similar to interfaces in C++) for common peripherals. The traits are then implemented for any microcontroller supported by the Rust community (embedded-hal [31]).
+
+Bern RTOS will not implement a HAL because of two reasons:
+
+A HAL is implemented for every microcontroller. This is tedious work and leads to many half finished implementations instead of one commonly used HAL.
+Preexisting code using some HAL should be reusable. You should for example be able to start by writing a bare-metal application and then switch to an RTOS with minimal code changes.
+An application can access the HAL functions directly. Access control is enforced by enabling or locking the memory sections of memory-mapped registers.
+
+Applications
+An application compromises of a set of threads and communication. Typically, there is just one application running on a microcontroller. With memory isolation, Bern RTOS also allows multiple applications to run in parallel.
+
+An application runs in user mode and has fewer privileges than the kernel.
+
+Also planned to be part of the application space are stacks and services, e.g., TCP/IP, Bluetooth Low Energy (BLE) or FAT file system. These could be specific to Bern RTOS or third-party implementations.
+
