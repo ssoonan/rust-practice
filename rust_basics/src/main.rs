@@ -1,3 +1,6 @@
+mod basics;
+mod ipc;
+
 use std::sync::Arc;
 use std::thread;
 
